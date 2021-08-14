@@ -1,0 +1,205 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Products{% endblock %}
+
+{% block stylesheets %}
+	
+	{{ parent() }}
+
+	<style type="text/css">
+
+	  #gview_grilla > div.ui-jqgrid-hdiv > div > table > thead > tr {
+	    background-color: #0078d4;
+	    color:#fff;
+	  }
+
+    .jqgrow {
+      cursor: pointer;
+    }
+
+    .jqgrow:hover {
+      background: #d9fde6;
+    }
+
+	</style>
+  
+
+{% endblock %}
+
+{% block body %}
+
+  <div class="container-fluid">
+    
+      <div class="row">
+        <div class="col">
+
+          <button type="button" id="btnNewProduct" class="btn btn-primary btn-sm">
+            <i class="fa fa-plus" aria-hidden="true"></i> Añadir producto
+          </button>
+
+          <a href="{{path('product_excel')}}"  
+            id="btnEditProduct" 
+            class="btn btn-success btn-sm" 
+            target="_blank" 
+            > 
+            <i class="fa fa-file-excel-o" aria-hidden="true"></i> Generar Excel
+          </a>
+
+        
+
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+
+          <table id="grilla"></table>
+
+          <!-- Modal -->
+          <div class="modal fade" id="modalProduct" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="modal-title"></h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBody"> ... </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+  </div>
+
+{% endblock %}
+
+ {% block javascripts %}
+
+ 	{{ parent() }}
+  <script type="text/javascript">
+    $(document).ready(function() {
+
+      $("#grilla").jqGrid({
+          styleUI : 'Bootstrap',
+          url:'{{path("product_json")}}',
+          datatype: "json",
+          colModel:[
+            {name:'id',index:'p.id', hidden:true},
+            {name:'code',index:'p.code',label:'CÓDIGO', align:"center"},
+            {name:'name',index:'p.name',label:'NOMBRE', align:"center"},
+            {name:'brand',index:'p.brand',label:'MARCA', align:"center"},
+            {name:'fk_category',index:'c.fk_category',label:'CATEGORÍA', align:"center"},
+            {name:'active',index:'p.active',align:"center",label:'ESTADO',width:100},
+            {name:'price',index:'p.price',align:"center",label:'PRECIO',width:100},
+            {name:'ELIMINAR',index:'col1',key: true,width:100,sorttype:"text",formatter:function(cellvalue, options, rowObject) {
+
+               return '<button value="'+rowObject.id+'" type="button" class="btn btn-danger btn-sm delet-product"><i class="fa fa-trash" aria-hidden="true"></i> </button>';
+            }},      
+            {name:'EDITAR',index:'col2',key: true,width:100,sorttype:"text",formatter:function(cellvalue, options, rowObject) {
+
+               return '<button value="'+rowObject.id+'" type="button" class="btn btn-success btn-sm edit-product"><i class="fa fa-pencil" aria-hidden="true"></i> </button>';
+            }}            
+          ],
+          rowNum: 100,
+          autowidth: true,
+          rowList: [100,200,300,400],
+          pager: '#pGrilla',
+          sortname: 'p.id',
+          viewrecords:true,
+          sortorder: "ASC",
+          height:($(document).height()-90),
+          loadComplete: function(ids) { 
+
+            $(document).on('click', '.delet-product', function() {
+              deleteProduct($(this).val());
+            });
+
+            $(document).on('click', '.edit-product', function() {
+              editProduct($(this).val());
+            });
+          }
+      });
+
+      $('#btnNewProduct').click(function(){
+
+        $('#modal-title').empty().text('CREAR PRODUCTO');
+        $('#modalProduct').modal('show');
+        $('#modalBody').empty().load('{{path("product_new")}}');
+
+      });
+
+    });
+
+    function reloadGrid() {
+      $("#grilla").trigger("reloadGrid");
+    }
+
+    function deleteProduct(id) {
+
+      Swal.fire({
+        title: '¿Desea eliminar el producto seleccionado?',
+        showDenyButton: true,
+        confirmButtonText: 'Eliminar',
+        denyButtonText: 'Cancelar',
+      }).then((result) => {
+
+        if (result.isConfirmed) {
+
+          let url='{{path("product_create")}}';
+          $.ajax({
+            method:'get',
+            data:{'id':id},
+            url:'{{path("product_delete")}}',
+            beforeSend: function(){
+
+            },
+            statusCode: {
+              200:function(data) {
+
+                if (data.status == 0) {
+
+                  Swal.fire(data.message);
+
+                } else {
+              
+                  Swal.fire({
+                    icon: 'success',
+                    title: 'Producto eliminado correctamente.',
+                    showConfirmButton: false,
+                    timer: 1500
+                  });
+
+                  reloadGrid();
+
+                }
+
+              },
+              500: function() {
+
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Ha ocurrido un error inesperado',
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+                
+              }
+            }
+          });
+
+
+          
+        } 
+      });
+
+    }
+
+    function editProduct(id) {
+      $('#modal-title').empty().text('EDITAR PRODUCTO');
+      $('#modalProduct').modal('show');
+      $('#modalBody').empty().load('{{path("product_edit")}}',{'id':id});
+    }
+
+  </script>
+  {% endblock %}

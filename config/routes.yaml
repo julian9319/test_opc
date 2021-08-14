@@ -1,0 +1,44 @@
+# This file is the entry point to configure your own HTTP routes.
+# Files in the routes/ subdirectory configure the routes for your dependencies.
+
+index:
+    path: /
+    defaults: { _controller: 'App\Controller\ProductController::index' }
+
+product_json:
+    path: /product_json
+    defaults: { _controller: 'App\Controller\ProductController::productJson' }
+
+product_new:
+    path: /product_new
+    defaults: { _controller: 'App\Controller\ProductController::new' }
+
+product_create:
+    path: /product_create
+    defaults: { _controller: 'App\Controller\ProductController::create' }
+
+product_excel:
+    path: /product_excel
+    defaults: { _controller: 'App\Controller\ProductController::excel' }
+
+product_delete:
+    path: /product_delete
+    defaults: { _controller: 'App\Controller\ProductController::delete' }
+
+product_edit:
+    path: /product_edit
+    defaults: { _controller: 'App\Controller\ProductController::edit' }
+
+product_update:
+    path: /product_update
+    defaults: { _controller: 'App\Controller\ProductController::update' }
+
+category_index:
+    path: /category
+    defaults: { _controller: 'App\Controller\CategoryController::index' }
+
+categoty_product_json:
+    path: /categoty/product_json
+    defaults: { _controller: 'App\Controller\CategoryController::categoryJson' }
+
+

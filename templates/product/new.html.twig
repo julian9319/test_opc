@@ -1,0 +1,174 @@
+<div  class=" container-fluid"> 
+
+	<div class="row">
+	    <div class="col">	
+	    	<form action="#" class="form-product" id="formProduct" autocomplete="off">
+
+				<div class="row">
+				    <div class="col">
+				        {{ form_row(form.code) }}
+				    </div>
+				    <div class="col">
+				        {{ form_row(form.name) }}
+				    </div>
+				</div>	
+
+				<div class="row">
+				    <div class="col">
+				        {{ form_row(form.price) }}
+				    </div>
+				    <div class="col">
+				        {{ form_row(form.brand) }}
+				    </div>
+				</div>	
+
+				<div class="row">
+				    <div class="col">
+				        {{ form_row(form.description) }}
+				    </div>
+				</div>
+
+				<div class="row">
+				    <div class="col">
+				        {{ form_row(form.active) }}
+				    </div> 
+				    <div class="col">
+				        {{ form_row(form.fkCategory) }}
+				    </div>
+				</div>			
+
+				<div class="row">
+				    <div class="col text-center mt-4">
+
+				        <button type="submit" id="createProduct" class="btn btn-primary">
+  							<i class="fa fa-save"></i> Crear
+						</button>
+
+						 <input type="hidden" name="token" value="{{ csrf_token('intention') }}">
+
+				    </div>
+				</div>	
+			</form>
+		</div>	
+	</div>	
+
+</div>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+
+		$('#formProduct').submit(function(e) {
+			e.preventDefault();
+
+			let validateForm=validateFormData();
+
+			if (validateForm.status == 0) {
+
+				Swal.fire(validateForm.message);
+				return false;
+			}
+
+			$.ajax({
+				method:'post',
+				data:$('#formProduct').serialize(),
+				url:'{{path("product_create")}}',
+				beforeSend: function(){
+
+              		$("#createProduct").attr('disabled',true);
+
+            	},
+            	statusCode: {
+            		200:function(data) {
+
+            			if (data.status == 0) {
+
+            				Swal.fire(data.message);
+
+            				$("#createProduct").attr('disabled',false);
+
+            			} else {
+	          
+						    Swal.fire({
+							  icon: 'success',
+							  title: 'Producto creado correctamente.',
+							  showConfirmButton: false,
+							  timer: 1500
+							});
+
+						    $('#modalProduct').modal('toggle');
+
+					    	reloadGrid();
+            			}
+
+            		},
+            		500: function() {
+
+            			Swal.fire({
+						  icon: 'error',
+						  title: 'Ha ocurrido un error inesperado',
+						  showConfirmButton: false,
+						  timer: 1500
+						});
+
+            		}
+            	}
+			});
+
+		});
+
+		$('#product_code').keyup(function (){
+			if (this.value.match(/[^a-zA-Z0-9 ]/g))
+			{
+			this.value = this.value.replace(/[^a-zA-Z0-9 ]/g, '');
+			}
+		});
+
+		$('#product_price').keydown(function(e) {
+            if (e.which == 13 || e.which == 8 || e.which == 9 ||
+                e.which == 190 || e.which == 0 ||
+                (e.which > 47 && e.which < 58) ||
+                (e.which >= 96 && e.which <= 105)) {
+
+            } else {
+                return false;
+            }
+        });
+
+	});
+
+	function validateFormData() {
+
+		let result={
+			'status':1,
+			'message':'',
+		}
+
+		let product_code=$('#product_code').val().length;
+		if (product_code < 4 || product_code > 10) {
+
+			result.status=0;
+			result.message='El código debe tener mínimo 4 caracteres y máximo 10.';
+
+		}
+
+		let product_name=$('#product_name').val().length;
+		if (product_name < 4) {
+
+			result.status=0;
+			result.message='El nombre debe contener mínimo 4 caracteres.';
+
+		}
+
+		let product_price=parseInt($('#product_price').val());
+		if (product_price <= 0) {
+
+			result.status=0;
+			result.message='El precio es incorrecto.';
+
+		}
+
+		return result;
+
+	}
+
+</script>
